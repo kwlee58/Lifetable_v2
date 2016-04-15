@@ -1,0 +1,122 @@
+---
+title: "Graunt’s Life Table"
+author: "coop711"
+date: "2015년 5월 18일"
+output: html_document
+---
+
+Graunt의 생명표
+--------------------
+
+* 자료 출처
+
+```{r echo=FALSE}
+# setwd("~/Dropbox/Works/Class//Case_studies_in_stat/R.WD/lifetable/")
+```
+
+![Graunt 와 1993년 미국](../pics/graunt_table.png)
+
+* 자료 입력
+
+```{r}
+graunt <- data.frame(x = c(0, 6, 16, 26, 36, 46, 56, 66, 76), lx.17th = c(100, 64, 40, 25, 16, 10, 6, 3, 1))
+```
+
+- 같은 연령대의 1993년 미국 생명표 입력
+
+```{r}
+us.93 <- data.frame(x = graunt$x, lx.93 = c(100, 99, 99, 98, 97, 95, 92, 84, 70))
+```
+
+- 두 자료를 합쳐서 하나의 데이터프레임으로 
+
+```{r}
+graunt.us <- data.frame(graunt, lx.93 = us.93$lx)
+graunt.us
+```
+
+
+* Graunt 생명표로부터 개략의 생존함수 도시
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x,graunt$lx.17th, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx.17th, labels=graunt$lx.17th)
+abline(v=c(0, 76), lty=2)
+```
+
+* 기대수명 파악이 용이하도록 빗금 
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x, graunt$lx.17th, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx.17th, labels=graunt$lx.17th)
+abline(v=c(0, 76), lty=2)
+graunt.x<-c(graunt$x, rev(graunt$x))
+graunt.y<-c(rep(0, length(graunt$x)), rev(graunt$lx.17th))
+polygon(graunt.x, graunt.y, density=15)
+```
+
+* 윤곽을 파악하기 쉽도록 격자 설정
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x, graunt$lx.17th, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx.17th, labels=graunt$lx.17th)
+abline(v=c(0, 76), lty=2)
+graunt.x<-c(graunt$x, rev(graunt$x))
+graunt.y<-c(rep(0, length(graunt$x)), rev(graunt$lx.17th))
+polygon(graunt.x, graunt.y, density=15)
+abline(v=graunt$x,lty=2)
+```
+
+* 메인 타이틀과 x축, y축 라벨 설정.
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x, graunt$lx.17th, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx.17th, labels=graunt$lx.17th)
+abline(v=c(0, 76), lty=2)
+graunt.x<-c(graunt$x, rev(graunt$x))
+graunt.y<-c(rep(0, length(graunt$x)), rev(graunt$lx.17th))
+polygon(graunt.x, graunt.y,density=15)
+abline(v=graunt$x, lty=2)
+title(main="John Graunt의 생존 곡선", xlab="연령(세)", ylab="생존률(%)")
+```
+
+* 1993년 미국의 생존함수와 비교하기 위하여 `lines()`에 `type="b"`로 설정. $y$ 축의 70% 가 어떤 의미인지 음미할 것.  
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x, graunt$lx.17th, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx.17th, labels=graunt$lx.17th)
+abline(v=c(0, 76), lty=2)
+lines(us.93$x, us.93$lx.93, type="b")
+axis(side=2, at=70, labels=70)
+abline(h=70, lty=2)
+text(x=66, y=95, labels="미국 1993년")
+```
+
+* Graunt의 생존곡선과 1993년 미국 생존곡선 사이의 빗금친 부분은 무엇을 상징하는가?
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x, graunt$lx.17th, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx, labels=graunt$lx.17th)
+abline(v=c(0, 76), lty=2)
+lines(us.93$x, us.93$lx.93, type="b")
+axis(side=2, at=70, labels=70, las=1)
+abline(h=70, lty=2)
+graunt.x<-c(graunt$x, rev(graunt$x))
+graunt.y<-c(rep(0, length(graunt$x)), rev(graunt$lx.17th))
+us.y <- c(graunt$lx, rev(us.93$lx.93))
+polygon(graunt.x, us.y, density=15, col="red", border=NA)
+abline(v=graunt$x,lty=2)
+title(main="Graunt와 1993년 미국의 생존 곡선", xlab="연령(세)", ylab="생존률(%)")
+```
+
+* 마무리
+
+```{r echo=FALSE}
+save.image(file="graunt_0902.rda")
+```

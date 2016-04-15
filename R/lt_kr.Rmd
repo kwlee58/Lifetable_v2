@@ -1,0 +1,193 @@
+---
+title: "Lifetable Korea"
+author: "coop711"
+date: "2015년 9월 18일"
+output: html_document
+---
+
+# 한국의 생명표 변천
+
+## Data
+
+* 통계청의 excel 자료를 받아서 상당 시간의 작업을 거쳐 저장한 파일임. 1970년부터 매년 기록한 5세 간격 간이 생명표이나 추세를 파악하기에는 충분함.
+
+![한국의 간이생명표](../pics/lifetable_kr_xlsx.png)
+
+```{r}
+library(xlsx)
+lt.kr.70.13 <- read.xlsx("../data/lifetable_kr.xlsx", 1, startRow=3, endRow=24, colIndex=1:133, header=FALSE)
+str(lt.kr.70.13)
+gender.yr <- paste(c("A", "M", "F"), rep(1970:2013, each=3), sep=".")
+options(width=132)
+gender.yr
+names(lt.kr.70.13) <- c("age", gender.yr)
+str(lt.kr.70.13)
+```
+
+## Plot
+
+* 44년간의 변화를 1970년과 2013년의 생존함수를 그려 비교.
+
+```{r fig.width=6, fig.height=6}
+par(family="AppleGothic")
+plot(x=lt.kr.70.13$age, y=lt.kr.70.13$A.2013, type="b", ann=FALSE, xaxt="n", yaxt="n")
+lines(x=lt.kr.70.13$age, y=lt.kr.70.13$A.1970, type="b")
+axis(side=1, at=lt.kr.70.13$age, label=lt.kr.70.13$age)
+axis(side=2, at=seq(0, 100000, by=25000), labels=seq(0, 100, by=25))
+title(main="1970년과 2013년의 생존함수", xlab="연령", ylab="생존률(%)")
+text(x=c(60, 82), y=c(52000, 80000), labels=c(1970, 2013))
+```
+
+* 기대수명의 차이 표시
+     * `polygon()`에 필요한 좌표 설정
+
+```{r}
+poly.kr.x <- c(lt.kr.70.13$age, rev(lt.kr.70.13$age))
+poly.kr.y <- c(lt.kr.70.13$A.1970, rev(lt.kr.70.13$A.2013))
+```
+
+* 빗금 표시
+     * 빨간 색으로 구분
+
+```{r fig.width=6, fig.height=6}
+par(family="AppleGothic")
+plot(x=lt.kr.70.13$age, y=lt.kr.70.13$A.2013, type="b", ann=FALSE, xaxt="n", yaxt="n")
+lines(x=lt.kr.70.13$age, y=lt.kr.70.13$A.1970, type="b")
+axis(side=1, at=lt.kr.70.13$age, label=lt.kr.70.13$age)
+axis(side=2, at=seq(0, 100000, by=25000), labels=seq(0, 100, by=25))
+abline(v = c(0, 100), lty = 2)
+title(main="1970년과 2013년의 생존함수", xlab="연령", ylab="생존률(%)")
+text(x=c(60, 82), y=c(52000, 80000), labels=c(1970, 2013))
+polygon(poly.kr.x, poly.kr.y, angle=45, density=15, col="red")
+```
+
+
+## 면적 비교
+
+* 지난 시간에 만든 `area.R()` 함수를 이용하기 위하여 `dump`시킨 것을 도로 `source`하여 불러 옴.
+
+```{r}
+source("area.R")
+options(digits=3)
+(s.2013 <- area.R(lt.kr.70.13$age, lt.kr.70.13$A.2013)/100000)
+(s.1970 <- area.R(lt.kr.70.13$age, lt.kr.70.13$A.1970)/100000)
+s.2013 - s.1970
+```
+
+## 기대수명의 변화
+
+* 1970년부터 2013년까지 인구 전체, 남녀별 기대수명을 계산하기 위하여 `mapply()` 활용. `area.R(x, y)`에서 `x = lt.kr.70.13$age` 로 고정시키고, 전체-남-녀 각각의 column index를 추출하여 적용.
+    * column index 추출 과정
+
+```{r}
+A.idx <- substr(names(lt.kr.70.13), start=1, stop=1) == "A"
+M.idx <- substr(names(lt.kr.70.13), start=1, stop=1) == "M"
+F.idx <- substr(names(lt.kr.70.13), start=1, stop=1) == "F"
+```
+
+* `mapply()` 적용
+    * anonymous function 정의 방식에 유의.
+    * 연도별 기대수명 계산
+```{r}
+(A.e0 <- mapply(function(y) {area.R(x=lt.kr.70.13$age, y)}, lt.kr.70.13[, A.idx])/100000)
+(M.e0 <- mapply(function(y) {area.R(x=lt.kr.70.13$age, y)}, lt.kr.70.13[, M.idx])/100000)
+(F.e0 <- mapply(function(y) {area.R(x=lt.kr.70.13$age, y)}, lt.kr.70.13[, F.idx])/100000)
+```
+
+## plots
+
+* `plot()`과 `lines()`로 작성.
+
+```{r fig.width=6, fig.height=6}
+plot(1970:2013, A.e0, type="l", ylim=c(50, 90), ann=FALSE)
+lines(1970:2013, M.e0, col="blue")
+lines(1970:2013, F.e0, col="red")
+title(main="기대수명의 변화", xlab="연도", ylab="기대수명(세)")
+legend("topleft", inset = 0.1, lty=1, col=c("red", "black", "blue"), legend=c("여자", "전체", "남자"))
+```
+
+# ggplot
+
+## 자료 준비
+
+* `ggplot()`에서 사용할 long form 데이터 프레임을 구성하기 위하여 `reshape2` 패키지를 등록하고 `melt()` 적용.
+     * 비교에 필요한 `age`, `A.1970`, `A.2013`을 별도의 데이터 프레임으로 구성. 
+
+```{r}
+(lt.kr.df <- lt.kr.70.13[c("age", "A.1970", "A.2013")])
+```
+
+* `reshape2` 패키지를 라이브러리에 등록하고, long form 데이터 프레임으로 변환.
+    * `melt()`의 사용 방법에 유의.
+
+```{r}
+library(reshape2)
+(lt.kr.melt <- melt(lt.kr.df, id.vars="age", measure.vars=c("A.1970", "A.2013"), variable.name="years", value.name="lx"))
+```
+
+* `ggplot()`으로 1970년의 전체 생존함수와 2013년의 전체 생존함수 비교.
+    * `geom_point()`의 순서를 뒤로 하고, `shape=21:22, fill="white"`로 설정한 효과는 무엇인가?
+
+```{r fig.width=6, fig.height=6}
+library(ggplot2)
+(g.kr.1 <- ggplot(lt.kr.melt, aes(x=age, y=lx/1000, colour=years, shape=years)) + geom_line())
+(g.kr.2 <- g.kr.1 + geom_point(fill="white"))
+(g.kr.3 <- g.kr.2 + scale_shape_manual(values=21:22) + scale_colour_discrete(labels=c("1970", "2013")))
+(g.kr.3 <- g.kr.2 + scale_shape_manual(labels=c("1970", "2013"), values=21:22) + scale_colour_discrete(labels=c("1970", "2013")))
+```
+
+![plot symbols](../pics/plot_symbols_shape.png)
+
+* 기대수명의 차이를 `polygon()`으로 표시하기 위하여 `poly.df`를 앞에서 구성한 좌표들로부터 구성.
+    * `geom_path()`와 `geom_point()`의 순서가 바뀌면 어떻게 되는지 살펴 볼 것.
+
+```{r fig.width=6, fig.height=6}
+poly.df <- data.frame(x=poly.kr.x, y=poly.kr.y)
+(p.kr.1 <- ggplot(poly.df, aes(x=x, y=y/1000)) + geom_path())
+(p.kr.2 <- p.kr.1 + geom_point(shape=21, fill="white"))
+(p.kr.3 <- p.kr.2 + geom_polygon(alpha=0.3, fill="red"))
+```
+
+* 한글 추가 정보 입력
+    * 생존함수의 비교에서
+
+```{r fig.width=6, fig.height=6}
+source("theme_kr.R")
+theme.kr
+(g.kr.4 <- g.kr.3 + theme_bw() + theme.kr + xlab("연령") + ylab("생존률(%)") + ggtitle("1970년과 2013년의 전체 생존함수"))
+(g.kr.5 <- g.kr.4 + labs(colour="연도", shape="연도"))
+(g.kr.6 <- g.kr.5 + theme(legend.position=c(0.85, 0.85)))
+```
+
+* 한글 추가 정보 입력
+    * 기대수명의 차이를 `polygon`으로 비교하는 경우
+
+```{r fig.width=6, fig.height=6}
+(p.kr.4 <- p.kr.3 + theme_bw() + theme.kr + xlab("연령") + ylab("생존률(%)") + ggtitle("1970년과 2013년 기대수명의 차이"))
+(p.kr.5 <- p.kr.4 + annotate("text", x = c(55, 63, 80), y = c(60, 75, 85), label=c("1970년", "기대수명의\n 차이", "2013년"), family="HCR Dotum LVT", colour="blue"))
+```
+
+* 한글 추가 정보 입력
+    * 1970년부터 2013년까지 전체 및 남녀별 기대수명의 변화를 `ggplot()`으로 그리기 위하여 데이터 프레임 구성.
+    
+```{r}
+(lt.e0.df <- data.frame(year = 1970:2013, A = A.e0, M = M.e0, F = F.e0))
+(lt.e0.melt <- melt(lt.e0.df, id.vars = "year", measure.vars = c("A", "M", "F"), variable.name="gender", value.name="e0"))
+```
+
+* 한글 추가 정보 입력
+    * `ggplot`으로 변화 그리기.
+
+```{r fig.width=6, fig.height=6}
+(e0.1 <- ggplot(lt.e0.melt, aes(x = year, y = e0, colour = gender)) + theme_bw() + theme.kr + geom_line())
+(e0.2 <- e0.1 + ylim(50, 90))
+(e0.3 <- e0.2 + xlab("연도") + ylab("기대수명(세)") + ggtitle("1970년~2013년 성별 기대수명의 변화"))
+(e0.4 <- e0.3 + labs(colour="성별") + scale_colour_manual(values=c("black", "blue", "red"), labels=c("전체", "남자", "여자")))
+(e0.5 <- e0.4 + theme(legend.position = c(0.1, 0.8)))
+```
+
+## 자료 저장
+
+```{r}
+save.image("lt_kr_0918.rda")
+```

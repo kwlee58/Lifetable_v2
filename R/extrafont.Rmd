@@ -1,0 +1,32 @@
+---
+title: "Extrafont Generation"
+author: "coop711"
+date: "2016년 3월 27일"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Extrafonts
+
+```{r, extrafont package, echo = FALSE}
+# install.packages("extrafont", repos = "https://cran.rstudio.com")
+library(extrafont)
+# font_import()
+loadfonts()
+```
+
+### Theme_kr
+
+```{r, theme_kr}
+library(ggplot2)
+theme.kr <- theme(axis.title.x = element_text(family = "HCR Dotum LVT"),
+                  axis.title.y = element_text(family = "HCR Dotum LVT"),
+                  axis.text.x = element_text(family = "HCR Dotum LVT"),
+                  axis.text.y = element_text(family = "HCR Dotum LVT"),
+                  plot.title = element_text(family = "HCR Dotum LVT"),
+                  legend.title = element_text(family = "HCR Dotum LVT"),
+                  legend.text = element_text(family = "HCR Dotum LVT"))
+```

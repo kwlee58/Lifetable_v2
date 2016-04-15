@@ -1,0 +1,207 @@
+---
+title: "Graunt’s Life Table Extended"
+author: "coop711"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Lifetable of J. Graunt
+
+### Data
+
+<!--![Graunt 와 1993년 미국](../pics/graunt_table.png)-->
+
+<img src="../pics/graunt_table.png" width = 240>
+
+### Data Input
+
+```{r, data_graunt}
+graunt <- data.frame(x = c(0, 6, 16, 26, 36, 46, 56, 66, 76), lx.17th = c(100, 64, 40, 25, 16, 10, 6, 3, 1))
+```
+
+* 같은 연령대의 1993년 미국 생명표 입력
+
+```{r, data US 93}
+us.93 <- data.frame(x = graunt$x, lx.93 = c(100, 99, 99, 98, 97, 95, 92, 84, 70))
+```
+
+* 두 자료를 합쳐서 하나의 데이터프레임으로 
+
+```{r, single data frame}
+graunt.us <- data.frame(graunt, lx.93 = us.93$lx)
+graunt.us
+```
+
+* Graunt 생명표로부터 개략의 생존함수 도시
+
+```{r, life distribution first draft, fig.width = 6, fig.height = 6}
+plot(graunt$x, graunt$lx.17th, ann = F, xaxt = "n", yaxt = "n", type = "b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx.17th, labels = graunt$lx.17th)
+abline(v = c(0, 76), lty = 2)
+```
+
+* 기대수명 파악이 용이하도록 빗금 
+
+```{r, shading to highlight expected life distribution, fig.width=6, fig.height=6}
+plot(graunt$x, graunt$lx.17th, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx.17th, labels = graunt$lx.17th, las = 2)
+abline(v = c(0, 76), lty = 2)
+graunt.x <- c(graunt$x, 0)
+graunt.y <- c(graunt$lx.17th, 0)
+# graunt.x <- c(graunt$x, rev(graunt$x))
+# graunt.y<-c(rep(0, length(graunt$x)), rev(graunt$lx.17th))
+polygon(graunt.x, graunt.y, density = 15)
+```
+
+* 윤곽을 파악하기 쉽도록 격자 설정
+
+```{r, setting grids,  fig.width = 6, fig.height = 6}
+plot(graunt$x, graunt$lx.17th, ann = F, xaxt = "n", yaxt = "n", type = "b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx.17th, labels = graunt$lx.17th, las = 2)
+abline(v = c(0, 76), lty = 2)
+graunt.x <- c(graunt$x, 0)
+graunt.y <- c(graunt$lx.17th, 0)
+polygon(graunt.x, graunt.y, density = 15)
+abline(v = graunt$x, lty = 2)
+```
+
+* 메인 타이틀과 x축, y축 라벨 설정.
+
+```{r, main title xlab and ylab, fig.width = 6, fig.height = 6}
+# par(family = "Apple SD Gothic Neo")
+plot(graunt$x, graunt$lx.17th, ann = F, xaxt = "n", yaxt = "n", type = "b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx.17th, labels = graunt$lx.17th, las = 2)
+abline(v = c(0, 76), lty = 2)
+graunt.x <- c(graunt$x, 0)
+graunt.y <- c(graunt$lx.17th, 0)
+polygon(graunt.x, graunt.y, density = 15)
+abline(v = graunt$x, lty = 2)
+# title(main = "John Graunt의 생존 곡선", xlab = "연령(세)", ylab = "생존률(%)")
+title(main = "Survival Curve of Graunt's Life Table", xlab = "Age(years)", ylab = "Survived(%)")
+```
+
+## 1993년 미국의 생명표와 비교
+
+
+* 1993년 미국의 생존함수와 비교하기 위하여 `lines()`에 `type = "b"`로 설정. $y$ 축의 70% 가 어떤 의미인지 음미할 것.  
+
+```{r, US 93 added, fig.width=6, fig.height=6}
+plot(graunt$x, graunt$lx.17th, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx.17th, labels=graunt$lx.17th)
+abline(v=c(0, 76), lty=2)
+lines(us.93$x, us.93$lx.93, type="b")
+axis(side=2, at=70, labels=70)
+abline(h=70, lty=2)
+text(x=66, y=95, labels="미국 1993년")
+```
+
+* Graunt의 생존곡선과 1993년 미국 생존곡선 사이의 빗금친 부분은 무엇을 상징하는가?
+
+```{r, meaning of shaded area, fig.width = 6, fig.height = 6}
+plot(graunt$x, graunt$lx.17th, ann = F, xaxt = "n", yaxt = "n", type = "b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx, labels = graunt$lx.17th, las = 2)
+abline(v = c(0, 76), lty = 2)
+# lines(us.93$x, us.93$lx.93, type = "b")
+lines(graunt$x, us.93$lx.93, type = "b")
+axis(side = 2, at = 70, labels = 70, las = 1)
+abline(h = 70, lty = 2)
+us.graunt.x <- c(graunt$x, rev(graunt$x))
+us.graunt.y <- c(us.93$lx.93, rev(graunt$lx))
+polygon(us.graunt.x, us.graunt.y, density = 15, col = "red", border = NA)
+abline(v = graunt$x, lty = 2)
+# title(main = "Graunt와 1993년 미국의 생존 곡선", xlab = "연령(세)", ylab = "생존률(%)")
+title(main = "Survival Curve of Graunt's and US 93 Life Table", xlab = "Age(years)", ylab = "Survived(%)")
+
+```
+
+## ggplot
+
+* Work with `graunt.us`
+
+```{r, str graunt.us}
+str(graunt.us)
+```
+
+* wide format을 long format으로 바꾸기 위해서 'reshape2' 패키지 등록 
+
+```{r, reshape2}
+library(reshape2)
+```
+
+* `melt()` 함수의 사용법에 대하여 도움말 요청
+
+```
+?melt
+```
+
+* 다음 구조를 명확히 이해.
+
+```{r, format of melt}
+graunt.melt <- melt(graunt.us, id.vars = "x", measure.vars = c("lx.17th", "lx.93"), value.name = "lx", variable.name = "times")
+graunt.melt
+str(graunt.melt)
+```
+
+* 17세기 생명표와 1993년 생명표를 `times` factor로 구분
+
+```{r, factor level}
+levels(graunt.melt$times) <- c("17th", "1993")
+str(graunt.melt)
+```
+
+* `ggplot2` 패키지 등록
+
+```{r, library ggplot2}
+library(ggplot2)
+```
+
+* ggplot의 구조를 이해하기 쉽도록 가능한 단계별로 작업하고 저장. `geom_polygon` 작업에서 `data.frame`과 `aes`가 바뀌므로 `ggplot()`을 비워놓은 점에 유의.
+
+```{r, geom_point geom_line, fig.width = 6, fig.height = 6}
+g1 <- ggplot() + geom_point(data = graunt.melt, aes(x = x, y = lx, colour = times))
+g1
+g2 <- g1 + geom_line(data = graunt.melt, aes(x = x, y = lx, colour = times))
+g2
+g3 <- g2 + theme_bw()
+g3
+```
+
+* polygon 으로 두 생명곡선의 차이를 드러내기 위해서는 polygon의 좌표를 나타내는 별도의 데이터 프레임이 필요함.
+
+```{r, polygon data}
+graunt.poly <- data.frame(x = graunt.melt[c(1:9, 18:10), 1], y = graunt.melt[c(1:9, 18:10), 3])
+graunt.poly
+```
+
+```{r, polygon, fig.width = 6, fig.height = 6}
+g4 <- g3 + geom_polygon(data = graunt.poly, aes(x = x, y = y), alpha = 0.3, fill = "red")
+g4
+```
+
+#### Starting with a different plot
+
+* 점들을 선으로 이어주기 위하여 `geom_line()`를 사용하면 원하지 않는 결과를 얻게 됨. `geom_path()`를 사용하여야 함.
+
+```{r, geom_point, fig.width = 6, fig.height = 6}
+p1 <- ggplot(graunt.poly, aes(x = x, y = y)) + geom_point() 
+p1
+p2 <- p1 + geom_path() 
+p2
+p3 <- p2 + geom_polygon(alpha = 0.3, fill = "red")
+p3
+p4 <- p3 + theme_bw()
+p4
+```
+
+* 타이틀과 자막에 한글을 넣는 방법은 다음 시간에^^
+
+
+```{r, save, echo = FALSE}
+save.image("graunt_160316.rda")
+```

@@ -1,0 +1,29 @@
+---
+title: "National Lifetable"
+author: "coop711"
+date: "2015년 4월 24일"
+output: html_document
+---
+
+Data Loading
+------------
+
+-작업 디렉토리를 지우고 시작하니, 상황에 따라 대처할 것.
+
+```{r}
+rm(list=ls())
+load("./lifetable_kr.rda")
+ls()
+```
+
+- 다음 코드를 이용하여 국민생존함수를 그려보자.
+
+```{r fig.width=8, fig.height=8}
+plot(lifetable.kr$age,lifetable.kr$lx.m/1000,xlab="",ylab="",col="blue",type="l")
+lines(lifetable.kr$age,lifetable.kr$lx.f/1000,xlab="",ylab="",col="red")
+x<-c(lifetable.kr$age,rev(lifetable.kr$age))
+y<-c(lifetable.kr$lx.m/1000,rev(lifetable.kr$lx.f/1000))
+polygon(x,y,border=NA,density=15)
+legend(80,100,legend=c("남","여"),col=c("blue","red"),lty=1)
+title(main="국민생존함수(2012)",xlab="연령(세)",ylab="생존률(%)")
+```

@@ -1,0 +1,118 @@
+---
+title: "Graunt’s Life Table"
+author: "coop711"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Graunt의 생명표
+
+### Data Source
+
+<img src = "../pics/graunt_table.png" width = "160"/>
+
+<!--![Graunt 와 1993년 미국](../pics/graunt_table.png)-->
+
+### Data Input
+
+```{r, data graunt}
+graunt <- data.frame(x = c(0, seq(6, 76, by = 10)), lx.17th = c(100, 64, 40, 25, 16, 10, 6, 3, 1))
+```
+
+* Life table US 1993 for the same age group
+
+```{r, data US 1993}
+us.93 <- data.frame(x = graunt$x, lx.93 = c(100, 99, 99, 98, 97, 95, 92, 84, 70))
+```
+
+* Combine into one single data frame
+
+```{r, single data frame}
+graunt.us <- data.frame(graunt, lx.93 = us.93$lx)
+graunt.us
+```
+
+
+* Draft of Graunt life contingency curve
+
+```{r, Life Contingency curve of Graunt, fig.width = 6, fig.height = 6}
+plot(graunt$x, graunt$lx.17th, ann = F, xaxt = "n", yaxt = "n", type = "b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx.17th, labels = graunt$lx.17th)
+abline(v = c(0, 76), lty = 2)
+```
+
+* Shading to make clear the life expectancy. Setting the coordinates for `polygon()` (Clockwise coordinates setting)
+
+```{r fig.width = 6, fig.height = 6}
+plot(graunt$x, graunt$lx.17th, ann = F, xaxt = "n", yaxt = "n", type = "b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx.17th, labels = graunt$lx.17th)
+abline(v = c(0, 76), lty = 2)
+graunt.x <- c(graunt$x, 0)
+graunt.y <- c(graunt$lx.17th, 0)
+polygon(graunt.x, graunt.y, density = 15)
+```
+
+* Setting grids to clarify the shape
+
+```{r, grids, fig.width = 6, fig.height = 6}
+plot(graunt$x, graunt$lx.17th, ann = F, xaxt = "n", yaxt = "n", type = "b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx.17th, labels = graunt$lx.17th)
+abline(v = c(0, 76), lty = 2)
+graunt.x <- c(graunt$x, 0)
+graunt.y <- c(graunt$lx.17th, 0)
+polygon(graunt.x, graunt.y, density = 15)
+abline(v = graunt$x, lty = 3)
+```
+
+* Main title, x-axis and y-axis labels
+
+```{r, titles and labels, fig.width=6, fig.height=6}
+plot(graunt$x, graunt$lx.17th, ann = F, xaxt = "n", yaxt = "n", type = "b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx.17th, labels = graunt$lx.17th)
+abline(v = c(0, 76), lty = 2)
+graunt.x <- c(graunt$x, 0)
+graunt.y <- c(graunt$lx.17th, 0)
+polygon(graunt.x, graunt.y, density = 15)
+abline(v = graunt$x, lty = 3)
+title(main = "Survival Curve of John Graunt", xlab="Age(years)", ylab="Survival Rate(%)")
+```
+
+* To compare with US 1993, set `type="b"` in  `lines()`. The meaning of 70% in $y$-axis  
+
+```{r, both points and lines, fig.width=6, fig.height=6}
+plot(graunt$x, graunt$lx.17th, ann = F, xaxt = "n", yaxt = "n", type = "b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx.17th, labels = graunt$lx.17th)
+abline(v = c(0, 76), lty = 2)
+lines(us.93$x, us.93$lx.93, type = "b")
+axis(side = 2, at = 70, labels = 70)
+abline(h = 70, lty = 2)
+text(x = 66, y = 95, labels = "US 1993")
+```
+
+* The shading between Graunt's and US 1993 means the difference of life expectancies. Check the role of `las = 1` in `axis(side = 2, ...)`.
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x, graunt$lx.17th, ann = F, xaxt = "n", yaxt = "n", type = "b")
+axis(side = 1, at = graunt$x, labels = graunt$x)
+axis(side = 2, at = graunt$lx.17th, labels = graunt$lx.17th)
+abline(v = c(0, 76), lty = 2)
+lines(us.93$x, us.93$lx.93, type = "b")
+axis(side = 2, at = 70, labels = 70, las = 1)
+abline(h = 70, lty = 2)
+us.graunt.x <- c(us.93$x, rev(graunt$x))
+us.graunt.y <- c(us.93$lx.93, rev(graunt$lx.17th))
+polygon(us.graunt.x, us.graunt.y, density = 15, col = "red", border = NA)
+abline(v = graunt$x, lty = 2)
+title(main="Survival Curve of Graunt and US 1993", xlab="Age(years)", ylab="Survival Rate(%)")
+```
+
+* Save workspace
+
+```{r echo = FALSE}
+save.image(file = "graunt_160322.rda")
+```

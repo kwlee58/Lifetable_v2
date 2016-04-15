@@ -1,0 +1,14 @@
+name: Publish Document
+account: rpubs
+server: rpubs.com
+<<<<<<< HEAD
+appId: https://api.rpubs.com/api/v1/document/166718/d9a4bdc93021400884ce321661145fae
+bundleId: https://api.rpubs.com/api/v1/document/166718/d9a4bdc93021400884ce321661145fae
+url: http://rpubs.com/kwlee58/166718
+when: 1459680639.38449
+=======
+bundleId:
+        https://api.rpubs.com/api/v1/document/166718/d9a4bdc93021400884ce321661145fae
+url: http://rpubs.com/kwlee58/166718
+when: 1459944452.13889
+>>>>>>> upstream/master

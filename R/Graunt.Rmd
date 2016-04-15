@@ -1,0 +1,62 @@
+---
+title: "Graunt’s Life Table"
+author: "coop711"
+date: "2015년 5월 18일"
+output: html_document
+---
+
+Graunt의 생명표 입력
+--------------------
+
+```{r}
+graunt<-data.frame(x=c(0,6,16,26,36,46,56,66,76),lx=c(100,64,40,25,16,10,6,3,1))
+graunt
+```
+
+개략의 생존함수 도시
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x,graunt$lx, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx, labels=graunt$lx)
+abline(v=c(0, 76), lty=2)
+```
+
+기대수명 파악이 용이하도록 빗금 
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x,graunt$lx, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx, labels=graunt$lx)
+abline(v=c(0, 76), lty=2)
+graunt.x<-c(graunt$x, rev(graunt$x))
+graunt.y<-c(rep(0, length(graunt$x)), rev(graunt$lx))
+polygon(graunt.x,graunt.y,density=15)
+```
+
+윤곽을 파악하기 쉽도록 격자 설정
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x,graunt$lx, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx, labels=graunt$lx)
+abline(v=c(0, 76), lty=2)
+graunt.x<-c(graunt$x, rev(graunt$x))
+graunt.y<-c(rep(0, length(graunt$x)), rev(graunt$lx))
+polygon(graunt.x,graunt.y,density=15)
+abline(v=graunt$x,lty=2)
+```
+
+메인 타이틀과 x축, y축 라벨 설정.
+
+```{r fig.width=6, fig.height=6}
+plot(graunt$x,graunt$lx, ann=F, xaxt="n", yaxt="n", type="b")
+axis(side=1, at=graunt$x, labels=graunt$x)
+axis(side=2, at=graunt$lx, labels=graunt$lx)
+abline(v=c(0, 76), lty=2)
+graunt.x<-c(graunt$x, rev(graunt$x))
+graunt.y<-c(rep(0, length(graunt$x)), rev(graunt$lx))
+polygon(graunt.x,graunt.y,density=15)
+abline(v=graunt$x,lty=2)
+title(main="John Graunt의 생존 곡선", xlab="연령(세)", ylab="생존률(%)")
+```
